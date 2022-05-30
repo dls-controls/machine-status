@@ -19,6 +19,10 @@ const delayTime: number = parseFloat(
   process.env.REACT_APP_PAGE_DISPLAY_TIME_SEC ?? "5"
 );
 
+const graphUpdateTime: number = parseFloat(
+  process.env.REACT_APP_GRAPH_UPDATE_TIME_SEC ?? "10"
+);
+
 type Props = {
   urlpath: string;
   pagename: string;
@@ -53,6 +57,32 @@ const LoadEmbedded = (): JSX.Element => {
 
 const LoadEmbeddedDirect = (props: PropsPath): JSX.Element => {
   const path = String(props.pathin) + ".json";
+
+  // Method to update the img 'src' property for the graphs served from
+  // a URL. The URL is updated with the current time to avoid the
+  // browser simply loading the image from the cache.
+  function updateGraphsFromServer() {
+    const collection = document.getElementsByTagName("img");
+    for (let i = 0; i < collection.length; i++) {
+      const fileName = collection[i].getAttribute("src") || "";
+      if (fileName.includes("http")) {
+        if (fileName?.includes("#")) {
+          const arr = fileName?.split("#") || [""];
+          collection[i].setAttribute(
+            "src",
+            arr[0] + "#" + new Date().getTime()
+          );
+        } else {
+          collection[i].setAttribute(
+            "src",
+            fileName + "#" + new Date().getTime()
+          );
+        }
+      }
+    }
+    setTimeout(updateGraphsFromServer, graphUpdateTime * 1000);
+  }
+  setTimeout(updateGraphsFromServer, graphUpdateTime * 1000);
 
   return (
     <EmbeddedDisplay
